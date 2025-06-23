@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript">
+    Office.onReady(function(info) {
+      if (info.host === Office.HostType.Outlook) {
+        console.log("Office is ready.");
+      }
+    });
+
+    function onMessageSendHandler(event) {
+      alert("메일을 보내려 합니다.");
+      event.completed({ allowEvent: true });
+    }
+
+    Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
+  </script>
+</head>
+<body></body>
+</html>
