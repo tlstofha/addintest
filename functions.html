@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <script type="text/javascript">
-    Office.onReady(function(info) {
+    Office.onReady(function (info) {
       if (info.host === Office.HostType.Outlook) {
-        console.log("Office is ready.");
+        console.log("Office is ready for the OnSend Add-in.");
       }
     });
 
     function onMessageSendHandler(event) {
-      alert("메일을 보내려 합니다.");
+      alert("You are about to send an email.");
       event.completed({ allowEvent: true });
     }
 
