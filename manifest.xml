@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:type="MailApp">
+
+  <Id>11111111-2222-3333-4444-555555555555</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>YuyuPharma</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Yuyu OnSend Validator" />
+  <Description DefaultValue="Checks email subject before sending." />
+
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+
+  <Requirements>
+    <Sets DefaultMinVersion="1.8">
+      <Set Name="Mailbox" MinVersion="1.8" />
+    </Sets>
+  </Requirements>
+
+  <FormSettings>
+    <Form xsi:type="ItemSend">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://tlstofha.github.io/addintest/taskpane.html" />
+        <RequestedHeight>200</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+
+  <Permissions>ReadWriteItem</Permissions>
+
+</OfficeApp>
