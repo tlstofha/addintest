@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script type="text/javascript">
-    Office.onReady(function (info) {
-      if (info.host === Office.HostType.Outlook) {
-        console.log("Outlook OnSend add-in ready.");
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Office.js library for Outlook add-ins -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script>
+      // Ensure the Office runtime is ready before associating the event handler
+      Office.onReady(function () {
+        // Map the event name to the handler function defined below
+        Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
+      });
+
+      // Event handler for the OnSend (ItemSend) event
+      function onMessageSendHandler(event) {
+        // (Add any custom validation or logic here if needed)
+
+        // Complete the event, allowing the email to be sent
+        event.completed({ allowEvent: true });
       }
-    });
-
-    function onMessageSendHandler(event) {
-      console.log("onMessageSendHandler fired");
-      alert("Sending email...");
-      event.completed({ allowEvent: true });
-    }
-
-    Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
-  </script>
-</head>
-<body>OnSend test loaded.</body>
+    </script>
+  </head>
+  <body>ddddd
+  </body>
 </html>
