@@ -1,18 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script>
-    Office.onReady(() => {
-      Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
-    });
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Office.js library for Outlook add-ins -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script>
+      // Ensure the Office runtime is ready before associating the event handler
+      Office.onReady(function () {
+        // Map the event name to the handler function defined below
+        Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
+      });
 
-    function onMessageSendHandler(event) {
-      alert("Mail is being sent!");
-      event.completed({ allowEvent: true });
-    }
-  </script>
-</head>
-<body></body>
+      // Event handler for the OnSend (ItemSend) event
+      function onMessageSendHandler(event) {
+        try {
+          // (Add any custom validation or logic here if needed)
+
+          // Complete the event, allowing the email to be sent
+          event.completed({ allowEvent: true });
+        } catch (e) {
+          console.error("Send handler error:", e);
+          event.completed({ allowEvent: false });
+        }
+      }
+    </script>
+  </head>
+  <body></body>
 </html>
