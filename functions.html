@@ -2,25 +2,21 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>OnSend Add-in</title>
-  <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
   <script type="text/javascript">
     Office.onReady(function (info) {
       if (info.host === Office.HostType.Outlook) {
-        console.log("✅ Office is ready for the OnSend Add-in.");
+        console.log("Outlook OnSend add-in ready.");
       }
     });
 
     function onMessageSendHandler(event) {
-      console.log("📤 Email send initiated");
-      alert("⚠️ You are about to send an email.");
+      console.log("onMessageSendHandler fired");
+      alert("Sending email...");
       event.completed({ allowEvent: true });
     }
 
     Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
   </script>
 </head>
-<body>
-  <p style="font-family:sans-serif;">This add-in runs when you send a message.</p>
-</body>
+<body>test</body>
 </html>
