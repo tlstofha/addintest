@@ -1,34 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
            xsi:type="MailApp">
 
-  <Id>11111111-2222-3333-4444-555555555555</Id>
+  <Id>12b3c7a9-0bfc-4a07-9c5d-123456789abc</Id>
   <Version>1.0.0.0</Version>
-  <ProviderName>YuyuPharma</ProviderName>
+  <ProviderName>Contoso</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="Yuyu OnSend Validator" />
-  <Description DefaultValue="Checks email subject before sending." />
+  <DisplayName DefaultValue="OnSend Lite"/>
+  <Description DefaultValue="Runs code right before message send."/>
+  <IconUrl DefaultValue="https://tlstofha.github.io/addintest/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://tlstofha.github.io/addintest/icon-80.png"/>
+  <SupportUrl DefaultValue="https://contoso.com"/>
 
-  <Hosts>
-    <Host Name="Mailbox" />
-  </Hosts>
+  <Hosts><Host Name="Mailbox"/></Hosts>
 
   <Requirements>
-    <Sets DefaultMinVersion="1.8">
-      <Set Name="Mailbox" MinVersion="1.8" />
-    </Sets>
+    <Sets><Set Name="Mailbox" MinVersion="1.8"/></Sets>
   </Requirements>
 
   <FormSettings>
-    <Form xsi:type="ItemSend">
+    <Form xsi:type="ItemEdit">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://tlstofha.github.io/addintest/taskpane.html" />
-        <RequestedHeight>200</RequestedHeight>
+        <SourceLocation DefaultValue="https://tlstofha.github.io/addintest/placeholder.html"/>
       </DesktopSettings>
     </Form>
   </FormSettings>
 
   <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit"/>
 
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides"
+                    xsi:type="VersionOverridesV1_1">
+    <Hosts>
+      <Host xsi:type="MailHost">
+        <DesktopFormFactor>
+          <FunctionFile resid="funcFile"/>
+          <ExtensionPoint xsi:type="Events">
+            <Event Type="MessageSend"
+                   FunctionExecution="synchronous"
+                   FunctionName="onMessageSendHandler"/>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Urls>
+        <bt:Url id="funcFile" DefaultValue="https://tlstofha.github.io/addintest/functions.html"/>
+      </bt:Urls>
+    </Resources>
+  </VersionOverrides>
 </OfficeApp>
