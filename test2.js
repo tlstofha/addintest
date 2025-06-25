@@ -1,52 +1,108 @@
-// 전역 변수로 현재 이메일 아이템을 저장할 객체
-var mailboxItem;
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+ * See LICENSE in the project root for license information.
+ */
 
-Office.initialize = function (reason) {
-  // Office 객체 초기화 시 현재 Item을 변수에 할당
-  mailboxItem = Office.context.mailbox.item;
-};
+    var mailboxItem;
 
-// Outlook 메일 전송(ItemSend) 이벤트 발생 시 호출되는 함수
-// <param name="event">메일 전송 이벤트 컨텍스트 객체</param>
-function validateBody(event) {
-  // 1. 현재 아이템이 약속(회의 일정)인지 확인. 약속 아이템은 검사 대상에서 제외.
-  if (mailboxItem.itemType === Office.MailboxEnums.ItemType.Appointment) {
-    // 약속일 경우 그대로 전송 허용
-    event.completed({ allowEvent: true });
-    return;
-  }
-
-  // 2. 메일 본문을 텍스트 형태로 비동기 가져오기
-  mailboxItem.body.getAsync("text", { asyncContext: event }, function(asyncResult) {
-    var sendEvent = asyncResult.asyncContext;  // 이벤트 컨텍스트 저장
-    if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
-      var bodyText = asyncResult.value;
-      // 금지어 목록 정의 (소문자로 비교하여 대소문자 무시)
-      var forbiddenWords = ["confidential", "password"];  // 금지어 배열 (예시)
-      var bodyLower = bodyText.toLowerCase();
-      var foundForbidden = false;
-      // 금지어 목록에 있는 단어가 본문에 포함되어 있는지 확인
-      for (var i = 0; i < forbiddenWords.length; i++) {
-        if (bodyLower.indexOf(forbiddenWords[i]) !== -1) {
-          foundForbidden = true;
-          break;
-        }
-      }
-      if (foundForbidden) {
-        // 3. 금지어 발견 시: 사용자에게 알림 메시지를 표시하고 전송 차단
-        mailboxItem.notificationMessages.addAsync('BlockSend', {
-          type: 'errorMessage',
-          message: '메일 본문에 금지어가 포함되어 있어 전송이 취소되었습니다.'
-        });
-        // 전송을 차단하도록 이벤트 완료 (allowEvent: false)
-        sendEvent.completed({ allowEvent: false });
-      } else {
-        // 4. 금지어가 없을 경우: 전송 허용
-        sendEvent.completed({ allowEvent: true });
-      }
-    } else {
-      // 본문을 가져오는 데 실패한 경우 (예외 상황): 기본적으로 전송 허용
-      sendEvent.completed({ allowEvent: true });
+    Office.initialize = function (reason) {
+        mailboxItem = Office.context.mailbox.item;
     }
-  });
-}
+
+    // Entry point for Contoso Message Body Checker add-in before send is allowed.
+    // <param name="event">MessageSend event is automatically passed by BlockOnSend code to the function specified in the manifest.</param>
+    function validateBody(event) {
+        mailboxItem.body.getAsync("html", { asyncContext: event }, checkBodyOnlyOnSendCallBack);
+    }
+
+    // Invoke by Contoso Subject and CC Checker add-in before send is allowed.
+    // <param name="event">MessageSend event is automatically passed by BlockOnSend code to the function specified in the manifest.</param>
+    function validateSubjectAndCC(event) {
+        shouldChangeSubjectOnSend(event);
+    }
+
+    // Check if the subject should be changed. If it is already changed allow send. Otherwise change it.
+    // <param name="event">MessageSend event passed from the calling function.</param>
+    function shouldChangeSubjectOnSend(event) {
+        mailboxItem.subject.getAsync(
+            { asyncContext: event },
+            function (asyncResult) {
+                addCCOnSend(asyncResult.asyncContext);
+                //console.log(asyncResult.value);
+                // Match string.
+                var checkSubject = (new RegExp(/\[Checked\]/)).test(asyncResult.value)
+                // Add [Checked]: to subject line.
+                subject = '[Checked]: ' + asyncResult.value;
+
+                // Check if a string is blank, null or undefined.
+                // If yes, block send and display information bar to notify sender to add a subject.
+                if (asyncResult.value === null || (/^\s*$/).test(asyncResult.value)) {
+                    mailboxItem.notificationMessages.addAsync('NoSend', { type: 'errorMessage', message: 'Please enter a subject for this email.' });
+                    asyncResult.asyncContext.completed({ allowEvent: false });
+                }
+                else {
+                    // If can't find a [Checked]: string match in subject, call subjectOnSendChange function.
+                    if (!checkSubject) {
+                        subjectOnSendChange(subject, asyncResult.asyncContext);
+                        //console.log(checkSubject);
+                    }
+                    else {
+                        // Allow send.
+                        asyncResult.asyncContext.completed({ allowEvent: true });
+                    }
+                }
+
+            }
+          )
+    }
+
+    // Add a CC to the email.  In this example, CC contoso@contoso.onmicrosoft.com
+    // <param name="event">MessageSend event passed from calling function</param>
+    function addCCOnSend(event) {
+        mailboxItem.cc.setAsync(['Contoso@contoso.onmicrosoft.com'], { asyncContext: event });        
+    }
+
+    // Check if the subject should be changed. If it is already changed allow send, otherwise change it.
+    // <param name="subject">Subject to set.</param>
+    // <param name="event">MessageSend event passed from the calling function.</param>
+    function subjectOnSendChange(subject, event) {
+        mailboxItem.subject.setAsync(
+            subject,
+            { asyncContext: event },
+            function (asyncResult) {
+                if (asyncResult.status == Office.AsyncResultStatus.Failed) {
+                    mailboxItem.notificationMessages.addAsync('NoSend', { type: 'errorMessage', message: 'Unable to set the subject.' });
+
+                    // Block send.
+                    asyncResult.asyncContext.completed({ allowEvent: false });
+                }
+                else {
+                    // Allow send.
+                    asyncResult.asyncContext.completed({ allowEvent: true });
+                }
+
+            });
+    }
+
+    // Check if the body contains a specific set of blocked words. If it contains the blocked words, block email from being sent. Otherwise allows sending.
+    // <param name="asyncResult">MessageSend event passed from the calling function.</param>
+    function checkBodyOnlyOnSendCallBack(asyncResult) {
+        var listOfBlockedWords = new Array("blockedword", "blockedword1", "blockedword2");
+        var wordExpression = listOfBlockedWords.join('|');
+
+        // \b to perform a "whole words only" search using a regular expression in the form of \bword\b.
+        // i to perform case-insensitive search.
+        var regexCheck = new RegExp('\\b(' + wordExpression + ')\\b', 'i');
+        var checkBody = regexCheck.test(asyncResult.value);
+
+        if (checkBody) {
+            mailboxItem.notificationMessages.addAsync('NoSend', { type: 'errorMessage', message: 'Blocked words have been found in the body of this email. Please remove them.' });
+            // Block send.
+            asyncResult.asyncContext.completed({ allowEvent: false });
+        }
+        else {
+
+            // Allow send.
+            asyncResult.asyncContext.completed({ allowEvent: true });
+        }
+    }
