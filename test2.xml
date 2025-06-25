@@ -1,66 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?>
-<OfficeApp
-  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides"
-  xsi:type="MailApp">
-
-  <Id>D2490B2A-0CB8-4B4F-AD70-C520AFA6E3FC</Id>
-  <Version>1.0</Version>
-  <ProviderName>Contoso</ProviderName>
-  <DefaultLocale>en-us</DefaultLocale>
-  <DisplayName DefaultValue="Contoso Subject and CC Checker" />
-  <Description DefaultValue="Contoso Subject and CC Checker" />
-
-  <Requirements>
-    <Sets DefaultMinVersion="1.1">
-      <Set Name="Mailbox" />
-    </Sets>
-  </Requirements>
-
-  <FormSettings>
-    <Form xsi:type="ItemEdit">
-      <DesktopSettings>
-        <SourceLocation DefaultValue="https://tlstofha.github.io/addintest/test2.html" />
-      </DesktopSettings>
-    </Form>
-  </FormSettings>
-
-  <Permissions>ReadWriteMailbox</Permissions>
-
-  <Rule xsi:type="RuleCollection" Mode="Or">
-    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
-    <Rule xsi:type="ItemIs" ItemType="Appointment" FormType="Edit" />
-  </Rule>
-
-  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
-    <!-- On Send requires VersionOverridesV1_1 -->
-    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
-      <Description resid="residAppDescription" />
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xsi:type="MailApp"
+          xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+          xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides"
+          xmlns:mailappor1_1="http://schemas.microsoft.com/office/mailappversionoverrides/1.1">
+  <!-- 기본 메타데이터 설정 -->
+  <Id>12fa83cc-5e43-435e-8922-369eb3743853</Id>  <!-- 애드인 식별을 위한 고유 GUID -->
+  <Version>1.0.0.0</Version>                     <!-- 버전 번호 -->
+  <ProviderName>Contoso</ProviderName>           <!-- 공급자 또는 회사 이름 -->
+  <DefaultLocale>en-US</DefaultLocale>           <!-- 기본 로캘 -->
+  <DisplayName DefaultValue="Contoso OnSend Validator"/>  <!-- 애드인 표시 이름 -->
+  <Description DefaultValue="Blocks email send if body contains forbidden words."/> <!-- 애드인 설명 -->
+  <Permissions>ReadWriteMailbox</Permissions>    <!-- 메일 읽기/쓰기 권한 (본문 검사를 위해 필요) -->
+  <SupportsSharedFolders>false</SupportsSharedFolders>    <!-- (선택 사항) 공유 사서함에 대한 지원 여부 -->
+  
+  <!-- 리소스 정의: UI 없는 함수 HTML 파일의 URL -->
+  <Resources>
+    <bt:Urls>
+      <!-- UI 없이 로드되는 함수 파일 (function.html)의 URL을 지정 -->
+      <bt:Url id="residUILessFunctionFileUrl" DefaultValue="https://tlstofha.github.io/addintest/test2.html"/>
+    </bt:Urls>
+  </Resources>
+  
+  <!-- Outlook Web Add-in 이벤트 기반 활성화를 위한 설정 -->
+  <VersionOverrides xsi:type="VersionOverridesV1_0" xmlns="http://schemas.microsoft.com/office/mailappversionoverrides">
+    <!-- OnSend 이벤트를 사용하려면 VersionOverridesV1_1 스키마를 사용 -->
+    <VersionOverrides xsi:type="VersionOverridesV1_1" xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1">
+      <!-- 요구되는 Outlook API Requirement Set: Mailbox 1.8 이상 (ItemSend 이벤트 지원) -->
       <Requirements>
-        <bt:Sets DefaultMinVersion="1.3">
-          <bt:Set Name="Mailbox" />
+        <bt:Sets DefaultMinVersion="1.8">
+          <bt:Set Name="Mailbox"/>
         </bt:Sets>
       </Requirements>
       <Hosts>
         <Host xsi:type="MailHost">
           <DesktopFormFactor>
-            <!-- The functionfile and function name to call on message send.  -->
-            <!-- In this particular case the function validateSubjectAndCC will be called within the JavaScript code referenced in residUILessFunctionFileUrl. -->
+            <!-- UI 없는 함수 파일을 지정 (메일 작성 화면에 숨김 상태로 로드됨) -->
             <FunctionFile resid="residUILessFunctionFileUrl" />
+            <!-- OnSend(ItemSend) 이벤트에 대응하는 함수 설정: 메일 전송 전 validateBody 함수 동기 실행 -->
             <ExtensionPoint xsi:type="Events">
-              <Event Type="ItemSend" FunctionExecution="synchronous" FunctionName="validateSubjectAndCC" />
+              <Event Type="ItemSend" FunctionExecution="synchronous" FunctionName="validateBody"/>
             </ExtensionPoint>
           </DesktopFormFactor>
         </Host>
       </Hosts>
-      <Resources>
-        <bt:Urls>
-          <!-- The JavaScript code is hosted on a secure and trusted web server. -->
-          <bt:Url id="residUILessFunctionFileUrl" DefaultValue="https://tlstofha.github.io/addintest/test2.html" ></bt:Url>
-        </bt:Urls>
-      </Resources>
     </VersionOverrides>
   </VersionOverrides>
 </OfficeApp>
