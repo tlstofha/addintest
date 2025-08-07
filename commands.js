@@ -9,8 +9,9 @@ function allow(event) {
   event.completed({ allowEvent: true });
 }
 
-// OnSend - 메일 전송 시 제목 체크
+// 메일 전송 시 제목 확인
 function onMessageSendHandler(event) {
+	return block(event, "테스트 입니다");
   Office.context.mailbox.item.subject.getAsync(function (r) {
     if (r.status !== Office.AsyncResultStatus.Succeeded) {
       return block(event, "제목 확인 중 오류가 발생했습니다.");
@@ -23,7 +24,7 @@ function onMessageSendHandler(event) {
   });
 }
 
-// OnSend - 약속 전송 시 제목 체크
+// 약속 전송 시 제목 확인
 function onAppointmentSendHandler(event) {
   Office.context.mailbox.item.subject.getAsync(function (r) {
     if (r.status !== Office.AsyncResultStatus.Succeeded) {
@@ -37,19 +38,15 @@ function onAppointmentSendHandler(event) {
   });
 }
 
-// OnCompose - 새 메일 작성 시 실행 (필요 시 초기화 작업 등 추가 가능)
+// 새 메일/약속 작성 시 자동 로드용 dummy 핸들러
 function onMessageComposeHandler(event) {
-  console.log("새 메일 작성 시작");
-  if (event && event.completed) event.completed();
+  event.completed();
 }
-
-// OnCompose - 새 약속 작성 시 실행
 function onAppointmentComposeHandler(event) {
-  console.log("새 약속 작성 시작");
-  if (event && event.completed) event.completed();
+  event.completed();
 }
 
-// XML에 정의된 FunctionName과 매핑
+// 이벤트 연결
 Office.actions.associate("onMessageSendHandler", onMessageSendHandler);
 Office.actions.associate("onAppointmentSendHandler", onAppointmentSendHandler);
 Office.actions.associate("onMessageComposeHandler", onMessageComposeHandler);
