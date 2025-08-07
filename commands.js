@@ -41,16 +41,14 @@ function onAppointmentSendHandler(event) {
    XML에 버튼 정의가 없으면 실행되지 않습니다. */
 function manualCheckSubject(event) {
   Office.context.mailbox.item.subject.getAsync(function (r) {
-    const empty = (r.status === Office.AsyncResultStatus.Succeeded
-      ? (r.value || "").trim() === ""
-      : true);
-    if (empty) {
-      Office.context.ui.displayDialogAsync(
-        "https://tlstofha.github.io/addintest/alert.html?msg=" +
-          encodeURIComponent("제목이 비었습니다.")
-      );
-    }
-    if (event && event.completed) event.completed();
+  if (r.status !== Office.AsyncResultStatus.Succeeded) {
+    return block(event, "제목 확인 중 오류가 발생했습니다.");
+  }
+  const subject = (r.value || "").trim();
+  if (!subject) {
+    return block(event, "제목이 비었습니다. 제목을 입력하세요.");
+  }
+  allow(event);
   });
 }
 
