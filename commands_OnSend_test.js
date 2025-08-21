@@ -1,43 +1,22 @@
-/* global Office */
 Office.onReady();
 
-function block(event, msg) {
-  event.completed({ allowEvent: false, errorMessage: msg });
-}
+const HOLD_MS = 10000; // 무조건 10초 지연
+
 function allow(event) {
   event.completed({ allowEvent: true });
 }
-// 10초(10,000ms) 후 허용
-function allowAfterDelay(event, ms) {
-  setTimeout(function () { allow(event); }, ms);
+function allowAfterDelay(event, ms = HOLD_MS) {
+  setTimeout(() => allow(event), ms);
 }
 
 function onMessageSendHandler(event) {
-  Office.context.mailbox.item.subject.getAsync(function (r) {
-    if (r.status !== Office.AsyncResultStatus.Succeeded) {
-      return block(event, "제목 확인 중 오류가 발생했습니다.");
-    }
-    const subject = (r.value || "").trim();
-    if (!subject) {
-      return block(event, "제목이 비었습니다. 제목을 입력하세요.");
-    }
-    // ▶ OnSend 프로세스 10초 유지
-    return allowAfterDelay(event, 10000);
-  });
+  // 제목 체크 없이 무조건 10초 지연 후 전송 허용
+  allowAfterDelay(event);
 }
 
 function onAppointmentSendHandler(event) {
-  Office.context.mailbox.item.subject.getAsync(function (r) {
-    if (r.status !== Office.AsyncResultStatus.Succeeded) {
-      return block(event, "약속 제목 확인 중 오류가 발생했습니다.");
-    }
-    const subject = (r.value || "").trim();
-    if (!subject) {
-      return block(event, "약속 제목이 비었습니다. 제목을 입력하세요.");
-    }
-    // ▶ OnSend 프로세스 10초 유지
-    return allowAfterDelay(event, 10000);
-  });
+  // 제목 체크 없이 무조건 10초 지연 후 전송 허용
+  allowAfterDelay(event);
 }
 
 function onMessageComposeHandler(event) { event.completed(); }
