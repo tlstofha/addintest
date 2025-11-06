@@ -1,6 +1,6 @@
 ﻿/* index.js */
 
-Office.initialize = function () { }
+Office.initialize = function () {}
 
 let item;
 
@@ -9,44 +9,42 @@ Office.onReady(function () {
     item = Office.context.mailbox.item;
 
     $(document).ready(function () {
-      if (item) {
-        try {
-          const subject = item.subject;
-          const itemId = encodeURIComponent(item.itemId);
-          console.log("[Add-in] Subject:", subject);
-          console.log("[Add-in] ItemId (EWS):", itemId);
-          $("#mSubject").text(subject || "(no subject)");
-          $("#mItemId").text(itemId || "(no id)");
-        } catch (ex) {
-          console.log("[Add-in] Read item error:", ex.message);
-        }
-      } else {
-        console.log("[Add-in] 메일 아이템을 가져오지 못했습니다.");
+      try {
+        const subject = item?.subject;
+        const itemId = encodeURIComponent(item?.itemId || "");
+        console.log("[Add-in] Subject:", subject);
+        console.log("[Add-in] ItemId (EWS):", itemId);
+        $("#mSubject").text(subject || "(no subject)");
+        $("#mItemId").text(itemId || "(no id)");
+      } catch (ex) {
+        console.log("[Add-in] Read item error:", ex.message);
       }
 
-      // 페이지 로드시 바로 실행
-      postOpenTypeExtensionExact();
+      const btn = document.getElementById("postExtensionBtn");
+      if (btn) {
+        btn.addEventListener("click", async () => {
+          btn.disabled = true;
+          btn.innerText = "Running...";
+          try {
+            await postOpenTypeExtensionExact();
+          } finally {
+            btn.disabled = false;
+            btn.innerText = "Run Graph POST";
+          }
+        });
+      }
     });
   } catch (ex) {
     console.log("[Add-in] onReady error:", ex.message);
   }
 });
 
-/**
- * POST https://graph.microsoft.com/v1.0/me/messages/{id}/extensions
- * Body:
- * {
- *   "@odata.type": "microsoft.graph.openTypeExtension",
- *   "extensionName": "Com.Innotek.Extension.Test",
- *   "addinTester": "TestName"
- * }
- */
 async function postOpenTypeExtensionExact() {
-console.log("request graph api");
+  console.log("request graph api");
   try {
     const accessToken = await Office.auth.getAccessToken({ allowSignInPrompt: true });
     if (!accessToken) {
-      console.error("[Graph] Failed to acquire access token.");
+      console.error("Failed to acquire access token.");
       return;
     }
 
@@ -64,7 +62,7 @@ console.log("request graph api");
     const resp = await fetch(url, {
       method: "POST",
       headers: {
-        "Authorization": Bearer ${accessToken},
+        "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(body)
@@ -72,14 +70,14 @@ console.log("request graph api");
 
     if (!resp.ok) {
       const text = await safeRead(resp);
-      console.error([Graph] POST failed: ${resp.status} ${resp.statusText}, text);
+      console.error(`POST failed: ${resp.status} ${resp.statusText}`, text);
       return;
     }
 
     const data = await resp.json();
-    console.log("[Graph] POST success:", data);
+    console.log("POST success:", data);
   } catch (err) {
-    console.error("[Graph] POST error:", err);
+    console.error("POST error:", err);
   }
 }
 
